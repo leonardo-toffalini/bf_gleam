@@ -1,9 +1,8 @@
-import gleam/io
-import lexer
 import interpreter
+import lexer
 
 pub fn main() {
-  let filepath = "examples/output.bf"
+  let filepath = "examples/print_a.bf"
   let tokens = lexer.lex(filepath)
   interpreter.interp(tokens)
 }

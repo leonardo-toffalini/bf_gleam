@@ -1,7 +1,8 @@
-import gleam/io
 import gleam/int
+import gleam/io
 import glearray.{type Array}
 import token
+import ascii
 
 pub fn interp(tokens: List(token.Token)) -> Nil {
   let arr = new_zero_array(1024)
@@ -41,7 +42,11 @@ fn do_interp(tokens: List(token.Token), index: Int, arr: Array(Int)) -> Nil {
             Ok(val) -> val
             Error(_) -> panic
           }
-          io.print(int.to_string(val))
+          let char = case ascii.int_to_ascii(val) {
+            Ok(char) -> char
+            Error(_) -> panic
+          }
+          io.print(char)
         }
         token.Comma -> todo
         token.Lbracket -> todo

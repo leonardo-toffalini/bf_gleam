@@ -4,6 +4,7 @@ import gleeunit/should
 import interpreter
 import lexer
 import simplifile
+import ascii
 import token.{Token, token_to_string}
 
 pub fn main() {
@@ -102,10 +103,14 @@ pub fn array_test() {
   |> should.equal(Error(Nil))
 }
 
-pub fn interp_test() {
-  // contents: +++ .
-  let filepath = "examples/output.bf"
+pub fn ascii_test() {
+  ascii.int_to_ascii(97)
+  |> should.equal(Ok("a"))
+}
+
+pub fn print_test() {
+  // contents: 97 + and .
+  let filepath = "examples/print_a.bf"
   let tokens = lexer.lex(filepath)
   interpreter.interp(tokens)
 }
-
