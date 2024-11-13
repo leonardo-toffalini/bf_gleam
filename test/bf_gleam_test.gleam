@@ -1,5 +1,7 @@
+import glearray
 import gleeunit
 import gleeunit/should
+import interpreter
 import lexer
 import simplifile
 import token.{Token, token_to_string}
@@ -83,5 +85,27 @@ pub fn cross_ref_test() {
     Token(token.Rbracket, 8, 7, 1),
     Token(token.Rbracket, 9, 0, 1),
   ])
+}
+
+pub fn array_test() {
+  let arr = interpreter.new_zero_array(42)
+  arr
+  |> glearray.length
+  |> should.equal(42)
+
+  arr
+  |> glearray.get(19)
+  |> should.equal(Ok(0))
+
+  arr
+  |> glearray.get(42)
+  |> should.equal(Error(Nil))
+}
+
+pub fn interp_test() {
+  // contents: +++ .
+  let filepath = "examples/output.bf"
+  let tokens = lexer.lex(filepath)
+  interpreter.interp(tokens)
 }
 
