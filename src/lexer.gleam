@@ -3,10 +3,13 @@ import gleam/string
 import simplifile
 import token
 
-pub fn lex(filepath: String) -> List(token.Token) {
+type Program =
+  List(token.Token)
+
+pub fn lex(filepath: String) -> Program {
   case simplifile.read(filepath) {
     Ok(source) -> do_lex(source, 0, [])
-    Error(_) -> panic
+    Error(_) -> panic as "Error opening file"
   }
 }
 
@@ -67,9 +70,9 @@ fn do_lex(
   }
 }
 
-pub fn cross_reference_tokens(tokens: List(token.Token)) -> List(token.Token) {
-  let len = list.length(tokens) - 1
-  tokens
+pub fn cross_reference_tokens(program: Program) -> Program {
+  let len = list.length(program) - 1
+  program
   |> forward(0, [], [])
   |> list.reverse
   |> backward(len, [], [])
@@ -84,12 +87,12 @@ pub fn cross_reference_tokens(tokens: List(token.Token)) -> List(token.Token) {
 // 7 6 3 2 5 4 1 0  the two together
 
 fn forward(
-  tokens: List(token.Token),
+  program: Program,
   index: Int,
   stack: List(Int),
-  acc: List(token.Token),
-) -> List(token.Token) {
-  case tokens {
+  acc: Program,
+) -> Program {
+  case program {
     [] -> acc |> list.reverse
     [first, ..rest] ->
       case first.token_type {
@@ -112,12 +115,12 @@ fn forward(
 }
 
 fn backward(
-  tokens: List(token.Token),
+  program: Program,
   index: Int,
   stack: List(Int),
-  acc: List(token.Token),
-) -> List(token.Token) {
-  case tokens {
+  acc: Program,
+) -> Program {
+  case program {
     [] -> acc |> list.reverse
     [last, ..rest] ->
       case last.token_type {

@@ -1,10 +1,8 @@
-import ascii
 import gleeunit
 import gleeunit/should
 import interpreter
 import lexer
 import simplifile
-import tape
 import token.{Token, token_to_string}
 
 pub fn main() {
@@ -88,15 +86,8 @@ pub fn cross_ref_test() {
   ])
 }
 
-pub fn ascii_test() {
-  ascii.int_to_ascii(97)
-  |> should.equal(Ok("a"))
-}
-
 pub fn print_test() {
   // contents: 97 + and .
   let filepath = "examples/print_a.bf"
-  let tokens = lexer.lex(filepath)
-  let tape = tape.new(128)
-  interpreter.interp(tokens, tape, [])
+  interpreter.run(filepath)
 }
