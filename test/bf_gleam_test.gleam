@@ -1,10 +1,10 @@
-import glearray
+import ascii
 import gleeunit
 import gleeunit/should
 import interpreter
 import lexer
 import simplifile
-import ascii
+import tape
 import token.{Token, token_to_string}
 
 pub fn main() {
@@ -88,21 +88,6 @@ pub fn cross_ref_test() {
   ])
 }
 
-pub fn array_test() {
-  let arr = interpreter.new_zero_array(42)
-  arr
-  |> glearray.length
-  |> should.equal(42)
-
-  arr
-  |> glearray.get(19)
-  |> should.equal(Ok(0))
-
-  arr
-  |> glearray.get(42)
-  |> should.equal(Error(Nil))
-}
-
 pub fn ascii_test() {
   ascii.int_to_ascii(97)
   |> should.equal(Ok("a"))
@@ -112,5 +97,6 @@ pub fn print_test() {
   // contents: 97 + and .
   let filepath = "examples/print_a.bf"
   let tokens = lexer.lex(filepath)
-  interpreter.interp(tokens)
+  let tape = tape.new(128)
+  interpreter.interp(tokens, tape, [])
 }

@@ -1,72 +1,79 @@
-import gleam/int
-import gleam/io
-import glearray.{type Array}
-import token
 import ascii
+import gleam/io
+import gleam/result
+import tape.{type Tape}
+import token.{type Token}
 
-pub fn interp(tokens: List(token.Token)) -> Nil {
-  let arr = new_zero_array(1024)
-  do_interp(tokens, 0, arr)
-}
+type Program =
+  List(Token)
 
-fn do_interp(tokens: List(token.Token), index: Int, arr: Array(Int)) -> Nil {
-  case tokens {
-    [first, ..rest] ->
-      case first.token_type {
-        token.Increment -> do_interp(rest, index + 1, arr)
-        token.Decrement -> do_interp(rest, index - 1, arr)
-        token.Plus -> {
-          let new_val = case glearray.get(arr, index) {
-            Ok(val) -> val + 1
-            Error(_) -> panic
-          }
-          let new_arr = case glearray.copy_set(arr, index, new_val) {
-            Ok(arr) -> arr
-            Error(_) -> panic
-          }
-          do_interp(rest, index, new_arr)
-        }
-        token.Minus -> {
-          let new_val = case glearray.get(arr, index) {
-            Ok(val) -> val - 1
-            Error(_) -> panic
-          }
-          let new_arr = case glearray.copy_set(arr, index, new_val) {
-            Ok(arr) -> arr
-            Error(_) -> panic
-          }
-          do_interp(rest, index, new_arr)
-        }
-        token.Dot -> {
-          let val = case glearray.get(arr, index) {
-            Ok(val) -> val
-            Error(_) -> panic
-          }
-          let char = case ascii.int_to_ascii(val) {
-            Ok(char) -> char
-            Error(_) -> panic
-          }
-          io.print(char)
-        }
-        token.Comma -> todo
-        token.Lbracket -> todo
-        token.Rbracket -> todo
+type Stack =
+  List(Program)
+
+pub fn interp(program: Program, tape: Tape, stack: Stack) {
+  case program {
+    [] -> Nil
+    [token, ..rest] ->
+      case token.token_type {
+        token.Increment -> increment(rest, tape, stack)
+        token.Decrement -> decrement(rest, tape, stack)
+        token.Plus -> plus(rest, tape, stack)
+        token.Minus -> minus(rest, tape, stack)
+        token.Dot -> dot(rest, tape, stack)
+        token.Comma -> comma(rest, tape, stack)
+        token.Lbracket -> lbracket(rest, tape, stack)
+        token.Rbracket -> rbracket(rest, tape, stack)
+        _ -> panic as "Unexpected token type while interpreting."
       }
-    _ -> Nil
   }
 }
 
-pub fn new_zero_array(n: Int) -> Array(Int) {
-  new_zero_list(n) |> glearray.from_list
+fn increment(program: Program, tape: Tape, stack: Stack) {
+  tape.increment(tape)
+  |> interp(program, _, stack)
 }
 
-fn new_zero_list(n: Int) -> List(Int) {
-  do_new_zero_list(n, [])
+fn decrement(program: Program, tape: Tape, stack: Stack) {
+  tape.decrement(tape)
+  |> interp(program, _, stack)
 }
 
-fn do_new_zero_list(n: Int, acc: List(Int)) -> List(Int) {
-  case n {
-    0 -> acc
-    m -> do_new_zero_list(m - 1, [0, ..acc])
+fn plus(program: Program, tape: Tape, stack: Stack) {
+  tape.plus(tape)
+  |> interp(program, _, stack)
+}
+
+fn minus(program: Program, tape: Tape, stack: Stack) {
+  tape.minus(tape)
+  |> interp(program, _, stack)
+}
+
+fn dot(program: Program, tape: Tape, stack: Stack) {
+  tape.get(tape) |> ascii.int_to_ascii |> result.unwrap("") |> io.print
+  interp(program, tape, stack)
+}
+
+fn comma(program: Program, tape: Tape, stack: Stack) {
+  todo
+}
+
+fn lbracket(program: Program, tape: Tape, stack: Stack) {
+  todo
+}
+
+fn rbracket(program: Program, tape: Tape, stack: Stack) {
+  todo
+}
+
+fn skip_forward(program: Program, num_seen: Int) {
+  case program, num_seen {
+    [], _ -> panic
+    [t, ..rest], num_seen ->
+      case t.token_type, num_seen {
+        token.Rbracket, 0 -> rest
+        token.Lbracket, _ -> skip_forward(rest, num_seen + 1)
+        token.Rbracket, _ -> skip_forward(rest, num_seen - 1)
+        _, _ -> skip_forward(rest, num_seen)
+      }
   }
 }
